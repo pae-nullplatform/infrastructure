@@ -32,7 +32,7 @@ module "foundations_dns" {
 #ALB Controller Config
 ###############################################################################
 module "foundations_alb_controller" {
-  source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/alb_controller?ref=feature/add-output-auth"
+  source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/alb_controller?ref=v1.12.4"
 
   aws_iam_openid_connect_provider = module.foundations_eks.eks_oidc_provider_arn
   cluster_name                    = module.foundations_eks.eks_cluster_name
@@ -81,7 +81,7 @@ module "nullplatform_cloud_provider" {
 # Asset Repository
 ################################################################################
 module "nullplatform_asset_respository" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=feature/add-output-auth"
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.12.4"
   nrn        = var.nrn
   np_api_key = var.np_api_key
   cluster_name = var.cluster_name
@@ -100,7 +100,7 @@ module "nullplatform_dimension" {
 # Nullplatform API KEY
 ################################################################################
 module "authorization" {
-  source       = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/authorization?ref=feature/add-output-auth"
+  source       = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/authorization?ref=v1.12.4"
   nrn          = var.nrn
   destination  = "nullplatform-base"
   np_api_key   = var.np_api_key
@@ -109,7 +109,7 @@ module "authorization" {
 # Nullplatform Base
 ################################################################################
 module "nullplatform_base" {
-  source = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/base?ref=feature/add-output-auth"
+  source = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/base?ref=v1.12.4"
   nrn    = var.nrn
   np_api_key     = module.authorization.authorization_api_key
   k8s_provider   = "eks"
@@ -148,7 +148,7 @@ module "scope_definition_agent_association" {
 ################################################################################
 
 module "agent_iam" {
-  source          = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam?ref=feature/add-output-auth"
+  source          = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam?ref=v1.12.4"
   aws_iam_openid_connect_provider_arn = module.foundations_eks.eks_oidc_provider_arn
 
   agent_namespace = var.namespace
@@ -159,7 +159,7 @@ module "agent_iam" {
 # Nullplatform Scope
 ################################################################################
 module "cloud_aws_agent" {
-  source                              = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/agent?ref=feature/add-output-auth"
+  source                              = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/agent?ref=v1.12.4"
   cloud_provider                      = var.cluster_provider
   cluster_name                        = var.cluster_name
   image_tag                           = var.image_tag
@@ -199,6 +199,7 @@ resource "kubernetes_manifest" "gateway-public" {
       }
 
       annotations = {
+        "service.beta.kubernetes.io/aws-load-balancer-name" = "mi-app-prod-nlb"
         "service.beta.kubernetes.io/aws-load-balancer-type"            = "nlb"
         "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
         "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
@@ -244,7 +245,7 @@ resource "kubernetes_manifest" "gateway-public" {
       ]
     }
   }
-  depends_on = [module.foundations_eks]
+  depends_on = [module.foundations_eks, module.foundations_alb_controller]
 }
 
 # resource "kubernetes_manifest" "smoke_request_authn" {
