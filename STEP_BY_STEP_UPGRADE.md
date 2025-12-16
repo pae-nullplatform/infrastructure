@@ -6,7 +6,7 @@ Este documento describe el proceso paso a paso para actualizar la infraestructur
 
 - OpenTofu/Terraform instalado
 - kubectl configurado con acceso al cluster EKS
-- AWS CLI configurado con el perfil correcto (`aws-profile: providers-test`)
+- AWS CLI configurado con el perfil correcto
 - Acceso al repositorio de modulos de nullplatform
 
 ---
@@ -164,7 +164,7 @@ resource "kubernetes_namespace_v1" "nullplatform" {
 }
 ```
 
-### 4.2 Crear namespace gateway
+### 4.2 Crear namespace gateways
 
 Agregar en `main.tf`:
 
