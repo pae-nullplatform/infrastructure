@@ -212,27 +212,3 @@ spec:
       port: 8181
       targetPort: 8181
   type: ClusterIP
-
-#---
-## =============================================================================
-## AuthorizationPolicy CUSTOM - Solo aplica a /smoke
-## =============================================================================
-#apiVersion: security.istio.io/v1
-#kind: AuthorizationPolicy
-#metadata:
-#  name: ext-authz-smoke
-#  namespace: gateway
-#spec:
-#  selector:
-#    matchLabels:
-#      app: gateway-public
-#  action: CUSTOM
-#  provider:
-#    name: opa-ext-authz
-#  rules:
-#    - to:
-#        - operation:
-#            paths:
-#              - "/smoke"
-#              - "/smoke/*"
-

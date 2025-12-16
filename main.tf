@@ -2,37 +2,72 @@
 # VPC Config
 ################################################################################
 module "foundations_vpc" {
-  source       = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/vpc?ref=v1.12.3"
+  source       = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/vpc?ref=v1.0.0"
   account      = var.account
   organization = var.organization
   vpc          = var.vpc
 }
 
+# ########################################################
+# # IAM Rol para ver cluster
+# ########################################################
+# resource "aws_iam_role" "eks_admin" {
+#   name = "${var.cluster_name}-admin-role"
+#
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action = "sts:AssumeRole"
+#         Effect = "Allow"
+#         Principal = {
+#           AWS = "arn:aws:iam::843443650160:role/aws-reserved/sso.amazonaws.com/sa-east-1/AWSReservedSSO_AWSAdministratorAccess_cf36aa73feaf2f63"
+#         }
+#       }
+#     ]
+#   })
+# }
+
 ###############################################################################
 # EKS Config
 ################################################################################
 module "foundations_eks" {
-  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=v1.12.3"
+  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=v1.11.0"
   aws_subnets_private_ids = module.foundations_vpc.private_subnets
   aws_vpc_vpc_id          = module.foundations_vpc.vpc_id
   name                    = var.cluster_name
   use_auto_mode           = true
+  access_entries = {
+    # # Admin con política de cluster completo
+    # "admin" = {
+    #   principal_arn = aws_iam_role.eks_admin.arn
+    #   type          = "STANDARD"
+    #   policy_associations = {
+    #     admin = {
+    #       policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+    #       access_scope = {
+    #         type = "cluster"
+    #       }
+    #     }
+    #   }
+    # }
+  }
 }
 
 ###############################################################################
 # DNS Config
 ################################################################################
 module "foundations_dns" {
-  source      = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/route53?ref=v1.12.3"
+  source      = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/route53?ref=v1.0.2"
   domain_name = var.domain_name
   vpc_id      = module.foundations_vpc.vpc_id
 }
 
-##############################################################################
-#ALB Controller Config
 ###############################################################################
+# ALB Controller Config
+################################################################################
 module "foundations_alb_controller" {
-  source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/alb_controller?ref=v1.12.4"
+  source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/alb_controller?ref=v1.0.0"
 
   aws_iam_openid_connect_provider = module.foundations_eks.eks_oidc_provider_arn
   cluster_name                    = module.foundations_eks.eks_cluster_name
@@ -42,23 +77,40 @@ module "foundations_alb_controller" {
 }
 
 ###############################################################################
+# Ingress Config
+################################################################################
+# module "foundations_networking" {
+#   source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/ingress?ref=v1.0.0"
+#
+#   certificate_arn = module.foundations_dns.acm_certificate_arn
+#
+#   depends_on = [module.foundations_alb_controller]
+# }
+
+###############################################################################
 # Code Repository
 ################################################################################
 module "nullplatform_code_repository" {
-  source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/code_repository?ref=v1.12.3"
-  np_api_key             = var.np_api_key
-  nrn                    = var.nrn
+  source           = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/code_repository?ref=v1.0.2"
+  np_api_key       = var.np_api_key
+  nrn              = var.nrn
   git_provider           = "github"
-  github_installation_id = var.github_installation_id
-  github_organization    = var.github_organization
+  organization_installation_id = var.github_installation_id
+  organization = var.github_organization
 
+  # group_path       = var.group_path
+  # access_token     = var.access_token
+  # installation_url = var.installation_url
+  # collaborators_config = var.collaborators_config
+  # gitlab_repository_prefix = var.gitlab_repository_prefix
+  # gitlab_slug = var.gitlab_slug
 }
 
 ###############################################################################
 # Cloud Providers Config
 ################################################################################
 module "nullplatform_cloud_provider" {
-  source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/cloud/aws/cloud?ref=v1.12.3"
+  source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/cloud/aws/cloud?ref=v1.0.0"
   domain_name            = var.domain_name
   hosted_private_zone_id = module.foundations_dns.private_zone_id
   hosted_public_zone_id  = module.foundations_dns.public_zone_id
@@ -70,57 +122,58 @@ module "nullplatform_cloud_provider" {
 # Asset Repository
 ################################################################################
 module "nullplatform_asset_respository" {
-  source       = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.12.4"
-  nrn          = var.nrn
-  np_api_key   = var.np_api_key
-  cluster_name = var.cluster_name
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.0.0"
+  nrn        = var.nrn
+  np_api_key = var.np_api_key
 }
 
 ###############################################################################
 # Dimensions
 ################################################################################
 module "nullplatform_dimension" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/dimensions?ref=v1.12.3"
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/dimensions?ref=v1.0.0"
   np_api_key = var.np_api_key
   nrn        = var.nrn
-}
-
-###############################################################################
-# Nullplatform API KEY
-################################################################################
-module "authorization" {
-  source      = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/authorization?ref=v1.12.4"
-  nrn         = var.nrn
-  destination = "nullplatform-base"
-  np_api_key  = var.np_api_key
 }
 
 ###############################################################################
 # Nullplatform Base
 ################################################################################
 module "nullplatform_base" {
-  source       = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/base?ref=v1.12.4"
-  nrn          = var.nrn
-  np_api_key   = module.authorization.authorization_api_key
-  k8s_provider = "eks"
-  depends_on   = [module.foundations_eks]
-
+  source = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/cloud/aws/base?ref=v1.0.0"
+  nrn    = var.nrn
+  depends_on = [module.foundations_eks]
 }
+
 
 ###############################################################################
 # Prometheus Config
 ################################################################################
 module "nullplatform_prometheus" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/prometheus?ref=v1.12.3"
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/prometheus?ref=v1.0.0"
   np_api_key = var.np_api_key
   nrn        = var.nrn
 
+}
+
+module "nullplatform_scope_agent" {
+  source = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/agent?ref=v1.12.4"
+
+  cluster_name                        = module.foundations_eks.eks_cluster_name
+  nrn                                 = var.nrn
+  tags_selectors                      = var.tags_selectors
+  cloud_provider                      = var.cluster_provider
+  image_tag                           = var.image_tag
+  aws_iam_role_arn = module.agent_iam.nullplatform_agent_role_arn
+  extra_config     = var.extra_config
 }
 
 module "scope_definition" {
   source     = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/scope_definition?ref=v1.12.3"
   nrn        = var.nrn
   np_api_key = var.np_api_key
+  service_spec_name                   = "AgentScope"
+  service_spec_description            = "Deployments using agent scopes"
 
 }
 
@@ -142,20 +195,6 @@ module "agent_iam" {
 
   agent_namespace = var.namespace
   cluster_name    = var.cluster_name
-}
-
-###############################################################################
-# Nullplatform Scope
-################################################################################
-module "cloud_aws_agent" {
-  source           = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/agent?ref=v1.12.4"
-  cloud_provider   = var.cluster_provider
-  cluster_name     = var.cluster_name
-  image_tag        = var.image_tag
-  nrn              = var.nrn
-  aws_iam_role_arn = module.agent_iam.nullplatform_agent_role_arn
-  extra_config     = var.extra_config
-  tags_selectors   = var.tags_selectors
 }
 
 module "istio" {
@@ -274,4 +313,5 @@ resource "kubernetes_manifest" "ext_authz_smoke" {
       ]
     }
   }
+  depends_on = [module.istio]
 }

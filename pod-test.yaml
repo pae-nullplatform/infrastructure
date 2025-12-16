@@ -143,7 +143,7 @@ spec:
     - name: gateway-public
       namespace: gateway
   hostnames:
-    - "hello.implementations-pae-infra.nullapps.io"
+    - "hello.pae-infra.nullapps.io"
   rules:
     - matches:
         - path:
