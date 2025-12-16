@@ -41,17 +41,6 @@ module "foundations_alb_controller" {
   depends_on = [module.foundations_eks]
 }
 
-##############################################################################
-#Ingress Config
-###############################################################################
-# module "foundations_networking" {
-#   source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/ingress?ref=v1.12.3"
-#
-#   certificate_arn = module.foundations_dns.acm_certificate_arn
-#
-#   depends_on = [module.foundations_alb_controller]
-# }
-
 ###############################################################################
 # Code Repository
 ################################################################################
@@ -105,6 +94,7 @@ module "authorization" {
   destination  = "nullplatform-base"
   np_api_key   = var.np_api_key
 }
+
 ###############################################################################
 # Nullplatform Base
 ################################################################################
@@ -116,7 +106,6 @@ module "nullplatform_base" {
   depends_on = [module.foundations_eks]
 
 }
-
 
 ###############################################################################
 # Prometheus Config
@@ -199,15 +188,13 @@ resource "kubernetes_manifest" "gateway-public" {
       }
 
       annotations = {
-        "service.beta.kubernetes.io/aws-load-balancer-name" = "mi-app-prod-nlb"
+        "service.beta.kubernetes.io/aws-load-balancer-name"            = "k8s-nullplatform-internet-facing"
         "service.beta.kubernetes.io/aws-load-balancer-type"            = "nlb"
         "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
         "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
         "service.beta.kubernetes.io/aws-load-balancer-ssl-cert"        = module.foundations_dns.acm_certificate_arn
         "service.beta.kubernetes.io/aws-load-balancer-ssl-ports"       = "443"
         "service.beta.kubernetes.io/aws-load-balancer-backend-protocol" = "tcp"
-
-        # Health check configurado para usar el puerto 15021 de Istio
         "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"     = "15021"
         "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "http"
         "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"     = "/healthz/ready"
@@ -248,100 +235,43 @@ resource "kubernetes_manifest" "gateway-public" {
   depends_on = [module.foundations_eks, module.foundations_alb_controller]
 }
 
-# resource "kubernetes_manifest" "smoke_request_authn" {
-#   manifest = {
-#     apiVersion = "security.istio.io/v1"
-#     kind       = "RequestAuthentication"
-#     metadata = {
-#       name      = "smoke-jwt"
-#       namespace = "istio-system"
-#     }
-#     spec = {
-#       selector = {
-#         matchLabels = {
-#           "app" = "gateway-public"
-#         }
-#       }
-#       jwtRules = [
-#         {
-#           issuer = "testing@secure.istio.io"
-#           jwksUri =  "https://raw.githubusercontent.com/istio/istio/release-1.28/security/tools/jwt/samples/jwks.json"
-#           forwardOriginalToken = true
-#         }
-#       ]
-#     }
-#   }
-#   depends_on = [module.foundations_eks]
-# }
-#
-# resource "kubernetes_manifest" "smoke_allow_policy" {
-#   manifest = {
-#     apiVersion = "security.istio.io/v1"
-#     kind       = "AuthorizationPolicy"
-#     metadata = {
-#       name      = "allow-smoke-with-jwt"
-#       namespace = "istio-system"
-#     }
-#     spec = {
-#       selector = {
-#         matchLabels = {
-#           "app" = "gateway-public"
-#         }
-#       }
-#       action = "ALLOW"
-#       rules = [
-#         {
-#           to = [
-#             {
-#               operation = {
-#                 paths   = ["/smoke", "/smoke/*"]
-#                 methods = ["GET", "POST"]
-#               }
-#             }
-#           ]
-#           when = [
-#             {
-#               key    = "request.auth.claims[foo]"
-#               values = ["bar"]
-#             }
-#           ]
-#         }
-#       ]
-#     }
-#   }
-#   depends_on = [module.foundations_eks]
-# }
-#
-# resource "kubernetes_manifest" "public_allow_policy" {
-#   manifest = {
-#     apiVersion = "security.istio.io/v1"
-#     kind       = "AuthorizationPolicy"
-#     metadata = {
-#       name      = "allow-non-smoke-public"
-#       namespace = "istio-system"
-#     }
-#     spec = {
-#       selector = {
-#         matchLabels = {
-#           "app" = "gateway-public"
-#         }
-#       }
-#       action = "ALLOW"
-#       rules = [
-#         {
-#           to = [
-#             {
-#               operation = {
-#                 notPaths = ["/smoke", "/smoke/*"]
-#               }
-#             }
-#           ]
-#         }
-#       ]
-#     }
-#   }
-#   depends_on = [module.foundations_eks]
-# }
+resource "kubernetes_manifest" "ext_authz_smoke" {
+  manifest = {
+    apiVersion = "security.istio.io/v1"
+    kind       = "AuthorizationPolicy"
 
+    metadata = {
+      name      = "ext-authz-smoke"
+      namespace = "gateway"
+    }
 
+    spec = {
+      selector = {
+        matchLabels = {
+          app = "gateway-public"
+        }
+      }
 
+      action = "CUSTOM"
+
+      provider = {
+        name = "opa-ext-authz"
+      }
+
+      rules = [
+        {
+          to = [
+            {
+              operation = {
+                paths = [
+                  "/smoke",
+                  "/smoke/*"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
