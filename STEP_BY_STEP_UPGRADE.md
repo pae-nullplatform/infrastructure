@@ -364,7 +364,13 @@ kubectl get pods -n nullplatform -l app=nginx-hello
 kubectl get svc -n nullplatform
 kubectl get httproute -n nullplatform
 ```
+---
+### 7.3 Agregar al configMap de sitio la vinculacion con la policy
 
+
+```bash
+kubectl patch configmap istio -n istio-system --type=merge -p ' data:  mesh: |  extensionProviders:  - name: opa-ext-authz  envoyExtAuthzGrpc:  service: "opa-ext-authz.istio-system.svc.cluster.local"  port: 9191
+```
 ---
 
 ## Paso 8: Validacion
