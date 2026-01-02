@@ -1,8 +1,8 @@
 ###############################################################################
 # VPC Config
 ################################################################################
-module "foundations_vpc" {
-  source       = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/vpc?ref=v1.0.0"
+module "vpc" {
+  source       = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/vpc?ref=v1.15.1"
   account      = var.account
   organization = var.organization
   vpc          = var.vpc
@@ -31,10 +31,10 @@ module "foundations_vpc" {
 ###############################################################################
 # EKS Config
 ################################################################################
-module "foundations_eks" {
-  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=v1.11.0"
-  aws_subnets_private_ids = module.foundations_vpc.private_subnets
-  aws_vpc_vpc_id          = module.foundations_vpc.vpc_id
+module "eks" {
+  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=v1.15.1"
+  aws_subnets_private_ids = module.vpc.private_subnets
+  aws_vpc_vpc_id          = module.vpc.vpc_id
   name                    = var.cluster_name
   use_auto_mode           = true
   access_entries = {
@@ -57,63 +57,47 @@ module "foundations_eks" {
 ###############################################################################
 # DNS Config
 ################################################################################
-module "foundations_dns" {
-  source      = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/route53?ref=v1.0.2"
+module "dns" {
+  source      = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/route53?ref=v1.15.1"
   domain_name = var.domain_name
-  vpc_id      = module.foundations_vpc.vpc_id
+  vpc_id      = module.vpc.vpc_id
+
+  depends_on = [module.vpc]
 }
 
 ###############################################################################
 # ALB Controller Config
 ################################################################################
-module "foundations_alb_controller" {
-  source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/alb_controller?ref=v1.0.0"
+module "alb_controller" {
+  source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/alb_controller?ref=v1.15.1"
 
-  aws_iam_openid_connect_provider = module.foundations_eks.eks_oidc_provider_arn
-  cluster_name                    = module.foundations_eks.eks_cluster_name
-  vpc_id                          = module.foundations_vpc.vpc_id
+  aws_iam_openid_connect_provider = module.eks.eks_oidc_provider_arn
+  cluster_name                    = module.eks.eks_cluster_name
+  vpc_id                          = module.vpc.vpc_id
 
-  depends_on = [module.foundations_eks]
+  depends_on = [module.eks]
 }
-
-###############################################################################
-# Ingress Config
-################################################################################
-# module "foundations_networking" {
-#   source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/ingress?ref=v1.0.0"
-#
-#   certificate_arn = module.foundations_dns.acm_certificate_arn
-#
-#   depends_on = [module.foundations_alb_controller]
-# }
 
 ###############################################################################
 # Code Repository
 ################################################################################
 module "nullplatform_code_repository" {
-  source           = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/code_repository?ref=v1.0.2"
+  source           = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/code_repository?ref=v1.15.1"
   np_api_key       = var.np_api_key
   nrn              = var.nrn
   git_provider           = "github"
-  organization_installation_id = var.github_installation_id
-  organization = var.github_organization
-
-  # group_path       = var.group_path
-  # access_token     = var.access_token
-  # installation_url = var.installation_url
-  # collaborators_config = var.collaborators_config
-  # gitlab_repository_prefix = var.gitlab_repository_prefix
-  # gitlab_slug = var.gitlab_slug
+  github_installation_id = var.github_installation_id
+  github_organization = var.github_organization
 }
 
 ###############################################################################
 # Cloud Providers Config
 ################################################################################
 module "nullplatform_cloud_provider" {
-  source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/cloud/aws/cloud?ref=v1.0.0"
+  source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/cloud/aws/cloud?ref=v1.15.1"
   domain_name            = var.domain_name
-  hosted_private_zone_id = module.foundations_dns.private_zone_id
-  hosted_public_zone_id  = module.foundations_dns.public_zone_id
+  hosted_private_zone_id = module.dns.private_zone_id
+  hosted_public_zone_id  = module.dns.public_zone_id
   np_api_key             = var.np_api_key
   nrn                    = var.nrn
 }
@@ -122,16 +106,17 @@ module "nullplatform_cloud_provider" {
 # Asset Repository
 ################################################################################
 module "nullplatform_asset_respository" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.0.0"
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.15.1"
   nrn        = var.nrn
   np_api_key = var.np_api_key
+  cluster_name = module.eks.eks_cluster_name
 }
 
 ###############################################################################
 # Dimensions
 ################################################################################
 module "nullplatform_dimension" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/dimensions?ref=v1.0.0"
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/dimensions?ref=v1.15.1"
   np_api_key = var.np_api_key
   nrn        = var.nrn
 }
@@ -140,9 +125,10 @@ module "nullplatform_dimension" {
 # Nullplatform Base
 ################################################################################
 module "nullplatform_base" {
-  source = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/cloud/aws/base?ref=v1.0.0"
-  nrn    = var.nrn
-  depends_on = [module.foundations_eks]
+  source       = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/base?ref=v1.15.1"
+  nrn          = var.nrn
+  k8s_provider = var.k8s_provider
+  np_api_key   = var.np_api_key
 }
 
 
@@ -150,26 +136,30 @@ module "nullplatform_base" {
 # Prometheus Config
 ################################################################################
 module "nullplatform_prometheus" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/prometheus?ref=v1.0.0"
-  np_api_key = var.np_api_key
-  nrn        = var.nrn
-
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/commons/prometheus?ref=v1.15.1"
 }
 
-module "nullplatform_scope_agent" {
-  source = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/agent?ref=v1.12.4"
+module "agent" {
+  source                  = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/agent?ref=feature/add-variables-to-istio"
+  cluster_name            = var.cluster_name
+  nrn                     = var.nrn
+  tags_selectors          = var.tags_selectors
+  image_tag               = var.image_tag
+  aws_iam_role_arn        = module.agent_iam.nullplatform_agent_role_arn
+  cloud_provider          = var.cloud_provider
+  domain                  = var.domain_name
+  dns_type                = var.dns_type
+  use_account_slug        = var.use_account_slug
+  image_pull_secrets      = var.image_pull_secrets
+  service_template        = var.service_template
+  initial_ingress_path    = var.initial_ingress_path
+  blue_green_ingress_path = var.blue_green_ingress_path
 
-  cluster_name                        = module.foundations_eks.eks_cluster_name
-  nrn                                 = var.nrn
-  tags_selectors                      = var.tags_selectors
-  cloud_provider                      = var.cluster_provider
-  image_tag                           = var.image_tag
-  aws_iam_role_arn = module.agent_iam.nullplatform_agent_role_arn
-  extra_config     = var.extra_config
+  depends_on = [module.eks]
 }
 
 module "scope_definition" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/scope_definition?ref=v1.12.3"
+  source     = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/scope_definition?ref=v1.15.1"
   nrn        = var.nrn
   np_api_key = var.np_api_key
   service_spec_name                   = "AgentScope"
@@ -178,7 +168,7 @@ module "scope_definition" {
 }
 
 module "scope_definition_agent_association" {
-  source                     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/scope_definition_agent_association?ref=v1.12.3"
+  source                     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/scope_definition_agent_association?ref=v1.15.1"
   nrn                        = var.nrn
   np_api_key                 = var.np_api_key
   service_specification_id   = module.scope_definition.service_specification_id
@@ -190,128 +180,60 @@ module "scope_definition_agent_association" {
 ################################################################################
 
 module "agent_iam" {
-  source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam?ref=v1.12.4"
-  aws_iam_openid_connect_provider_arn = module.foundations_eks.eks_oidc_provider_arn
+  source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/agent?ref=v1.15.1"
+  aws_iam_openid_connect_provider_arn = module.eks.eks_oidc_provider_arn
 
   agent_namespace = var.namespace
   cluster_name    = var.cluster_name
 }
 
 module "istio" {
-  source = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/istio?ref=v1.12.3"
+  source = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/istio?ref=v1.15.1"
+
+  depends_on = [module.eks, module.alb_controller]
 }
 
-resource "kubernetes_namespace_v1" "nullplatform" {
-  metadata {
-    name = "nullplatform"
-  }
+module "external_dns_iam" {
+  source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/external_dns?ref=v1.15.1"
+  aws_iam_openid_connect_provider_arn = module.eks.eks_oidc_provider_arn
+  cluster_name                        = var.cluster_name
+  hosted_zone_private_id              = module.dns.private_zone_id
+  hosted_zone_public_id               = module.dns.public_zone_id
 }
 
-resource "kubernetes_namespace_v1" "gateway" {
-  metadata {
-    name = "gateway"
-  }
+module "external_dns" {
+  source                 = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/external_dns?ref=v1.15.1"
+  aws_region             = var.aws_region
+  dns_provider_name      = var.dns_provider_name
+  domain_filters         = var.domain_name
+  aws_iam_role_arn       = module.external_dns_iam.nullplatform_external_dns_role_arn
+  private_hosted_zone_id = module.dns.private_zone_id
+  public_hosted_zone_id  = module.dns.public_zone_id
+  policy                 = var.policy
+  sources                = var.resources
+
+  depends_on = [module.alb_controller]
 }
 
-resource "kubernetes_manifest" "gateway-public" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1"
-    kind       = "Gateway"
-
-    metadata = {
-      name      = "gateway-public"
-      namespace = "gateway"
-
-      labels = {
-        "app" = "gateway-public"
-      }
-
-      annotations = {
-        "service.beta.kubernetes.io/aws-load-balancer-name"                 = "k8s-nullplatform-internet-facing"
-        "service.beta.kubernetes.io/aws-load-balancer-type"                 = "nlb"
-        "service.beta.kubernetes.io/aws-load-balancer-scheme"               = "internet-facing"
-        "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"      = "ip"
-        "service.beta.kubernetes.io/aws-load-balancer-ssl-cert"             = module.foundations_dns.acm_certificate_arn
-        "service.beta.kubernetes.io/aws-load-balancer-ssl-ports"            = "443"
-        "service.beta.kubernetes.io/aws-load-balancer-backend-protocol"     = "tcp"
-        "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"     = "15021"
-        "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "http"
-        "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"     = "/healthz/ready"
-      }
-    }
-
-    spec = {
-      gatewayClassName = "istio"
-
-      listeners = [
-        {
-          name     = "https"
-          hostname = "*.${var.domain_name}"
-          port     = 443
-          protocol = "HTTP"
-
-          allowedRoutes = {
-            namespaces = {
-              from = "All"
-            }
-          }
-        },
-        {
-          name     = "http"
-          hostname = "*.${var.domain_name}"
-          port     = 80
-          protocol = "HTTP"
-
-          allowedRoutes = {
-            namespaces = {
-              from = "All"
-            }
-          }
-        }
-      ]
-    }
-  }
-  depends_on = [module.foundations_eks, module.foundations_alb_controller]
+module "cert_manager_iam" {
+  source                              = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/iam/cert_manager?ref=v1.15.1"
+  cluster_name                        = var.cluster_name
+  aws_iam_openid_connect_provider_arn = module.eks.eks_oidc_provider_arn
+  hosted_zone_public_id               = module.dns.public_zone_id
+  hosted_zone_private_id              = module.dns.private_zone_id
 }
 
-resource "kubernetes_manifest" "ext_authz_smoke" {
-  manifest = {
-    apiVersion = "security.istio.io/v1"
-    kind       = "AuthorizationPolicy"
+module "cert_manager" {
+  source              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/cert_manager?ref=v1.15.1"
+  aws_region          = var.aws_region
+  aws_sa_arn          = module.cert_manager_iam.nullplatform_cert_manager_role_arn
+  cloud_provider      = "aws"
+  private_domain_name = module.dns.private_zone_name
+  account_slug        = var.account
+  hosted_zone_name    = module.dns.public_zone_name
 
-    metadata = {
-      name      = "ext-authz-smoke"
-      namespace = "gateway"
-    }
-
-    spec = {
-      selector = {
-        matchLabels = {
-          app = "gateway-public"
-        }
-      }
-
-      action = "CUSTOM"
-
-      provider = {
-        name = "opa-ext-authz"
-      }
-
-      rules = [
-        {
-          to = [
-            {
-              operation = {
-                paths = [
-                  "/smoke",
-                  "/smoke/*"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    }
-  }
-  depends_on = [module.istio]
+  depends_on = [module.alb_controller]
 }
+
+
+

@@ -25,8 +25,8 @@ provider "aws" {
 }
 
 provider "kubernetes" {
-  host                   = module.foundations_eks.eks_cluster_endpoint
-  cluster_ca_certificate = base64decode(module.foundations_eks.eks_cluster_ca)
+  host                   = module.eks.eks_cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.eks_cluster_ca)
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
@@ -34,7 +34,7 @@ provider "kubernetes" {
       var.aws_profile != "" ? ["--profile", var.aws_profile] : [],
       [
         "eks", "get-token",
-        "--cluster-name", module.foundations_eks.eks_cluster_name
+        "--cluster-name", module.eks.eks_cluster_name
       ]
     )
   }
@@ -42,8 +42,8 @@ provider "kubernetes" {
 
 provider "helm" {
   kubernetes = {
-    host                   = module.foundations_eks.eks_cluster_endpoint
-    cluster_ca_certificate = base64decode(module.foundations_eks.eks_cluster_ca)
+    host                   = module.eks.eks_cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.eks_cluster_ca)
     exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
@@ -51,7 +51,7 @@ provider "helm" {
         var.aws_profile != "" ? ["--profile", var.aws_profile] : [],
         [
           "eks", "get-token",
-          "--cluster-name", module.foundations_eks.eks_cluster_name
+          "--cluster-name", module.eks.eks_cluster_name
         ]
       )
     }

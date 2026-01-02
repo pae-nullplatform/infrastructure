@@ -75,6 +75,13 @@ data:
         return 302 /smoke/;
       }
 
+      location = /created {
+        if ($request_method = POST) {
+          return 204;
+        }
+        return 405;
+      }
+
       location / {
         try_files $uri $uri/ =404;
       }
@@ -141,7 +148,7 @@ metadata:
 spec:
   parentRefs:
     - name: gateway-public
-      namespace: gateway
+      namespace: gateways
   hostnames:
     - "hello.pae-infra.nullapps.io"
   rules:

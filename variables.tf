@@ -10,9 +10,17 @@ variable "aws_region" {}
 variable "aws_profile" {}
 variable "github_installation_id" {}
 variable "github_organization" {}
-# variable "aws_iam_openid_connect_provider_arn" {}
 variable "namespace" {}
-# variable "destination" {}
 variable "cluster_provider" {}
 variable "image_tag" {}
-variable "extra_config" {}
+variable "cloud_provider" {}
+variable "dns_type" {}
+variable "use_account_slug" {}
+variable "image_pull_secrets" {}
+variable "service_template" {}
+variable "initial_ingress_path" {}
+variable "blue_green_ingress_path" {}
+variable "k8s_provider" {}
+variable "dns_provider_name" {}
+variable "policy" {}
+variable "resources" {}
