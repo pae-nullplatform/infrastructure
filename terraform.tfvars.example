@@ -1,0 +1,73 @@
+# ============================================================================
+# Example Terraform Variables
+# ============================================================================
+# Copy this file to terraform.tfvars and adjust values as needed
+# ============================================================================
+
+# Account Configuration
+# ---------------------
+nrn          = "<organization=xxx:account=xxx:namespace=xxx>"
+organization = "<organization-name>"
+account      = "<account-name>"
+cluster_name = "<cluster-name>"
+domain_name  = "<domain-name>"
+
+# AWS Configuration
+# -----------------
+aws_region  = "<aws-region>"
+aws_profile = "<aws-profile>"
+
+# GitHub Configuration
+# --------------------
+github_installation_id = "<github-installation-id>"
+github_organization    = "<github-organization>"
+
+# Kubernetes Configuration
+# ------------------------
+namespace = "<namespace>"
+
+# Agent Configuration
+# -------------------
+image_tag               = "<image-tag>"
+cloud_provider          = "<cloud-provider>"
+dns_type                = "<dns-type>"
+use_account_slug        = false
+image_pull_secrets      = ""
+service_template        = "<path-to-service-template>"
+initial_ingress_path    = "<path-to-initial-ingress-template>"
+blue_green_ingress_path = "<path-to-blue-green-ingress-template>"
+
+# Provider Configuration
+# ----------------------
+k8s_provider = "<k8s-provider>"
+
+# VPC Configuration
+# -----------------
+vpc = {
+  azs        = ["<az-1>", "<az-2>", "<az-3>"]
+  cidr_block = "<cidr-block>"
+  public_subnets = [
+    "<public-subnet-1>",
+    "<public-subnet-2>",
+    "<public-subnet-3>",
+  ]
+  private_subnets = [
+    "<private-subnet-1>",
+    "<private-subnet-2>",
+    "<private-subnet-3>",
+  ]
+}
+
+# DNS Configuration
+# -----------------
+dns_provider_name = "<dns-provider>"
+
+# External DNS Configuration
+# --------------------------
+policy    = "<policy>"
+resources = ["<resource-type>"]
+
+# Nullplatform Configuration
+# --------------------------
+np_api_key     = "<np-api-key>"
+tags_selectors = { "<tag-key>" = "<tag-value>" }

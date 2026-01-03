@@ -82,12 +82,12 @@ module "alb_controller" {
 # Code Repository
 ################################################################################
 module "nullplatform_code_repository" {
-  source           = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/code_repository?ref=v1.15.1"
-  np_api_key       = var.np_api_key
-  nrn              = var.nrn
+  source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/code_repository?ref=v1.15.1"
+  np_api_key             = var.np_api_key
+  nrn                    = var.nrn
   git_provider           = "github"
   github_installation_id = var.github_installation_id
-  github_organization = var.github_organization
+  github_organization    = var.github_organization
 }
 
 ###############################################################################
@@ -106,9 +106,9 @@ module "nullplatform_cloud_provider" {
 # Asset Repository
 ################################################################################
 module "nullplatform_asset_respository" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.15.1"
-  nrn        = var.nrn
-  np_api_key = var.np_api_key
+  source       = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.15.1"
+  nrn          = var.nrn
+  np_api_key   = var.np_api_key
   cluster_name = module.eks.eks_cluster_name
 }
 
@@ -136,7 +136,7 @@ module "nullplatform_base" {
 # Prometheus Config
 ################################################################################
 module "nullplatform_prometheus" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/commons/prometheus?ref=v1.15.1"
+  source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/commons/prometheus?ref=v1.15.1"
 }
 
 module "agent" {
@@ -159,11 +159,11 @@ module "agent" {
 }
 
 module "scope_definition" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/scope_definition?ref=v1.15.1"
-  nrn        = var.nrn
-  np_api_key = var.np_api_key
-  service_spec_name                   = "AgentScope"
-  service_spec_description            = "Deployments using agent scopes"
+  source                   = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/scope_definition?ref=v1.15.1"
+  nrn                      = var.nrn
+  np_api_key               = var.np_api_key
+  service_spec_name        = "AgentScope"
+  service_spec_description = "Deployments using agent scopes"
 
 }
 

@@ -241,15 +241,33 @@ POST /created    -> No Content (204)
 
 ## Variables de Configuracion
 
-| Variable | Descripcion | Tipo | Ejemplo |
-|----------|-------------|------|---------|
-| `account` | Nombre de la cuenta | string | `"my-account"` |
-| `organization` | Organizacion | string | `"my-org"` |
-| `cluster_name` | Nombre del cluster EKS | string | `"my-cluster"` |
-| `domain_name` | Dominio base | string | `"example.nullapps.io"` |
-| `aws_region` | Region de AWS | string | `"us-east-1"` |
-| `np_api_key` | API Key de nullplatform | string | - |
-| `nrn` | NRN de nullplatform | string | - |
+| Variable | Descripcion |
+|----------|-------------|
+| `account` | Nombre de la cuenta |
+| `organization` | Organizacion |
+| `cluster_name` | Nombre del cluster EKS |
+| `domain_name` | Dominio base para DNS |
+| `aws_region` | Region de AWS |
+| `aws_profile` | Perfil de AWS CLI |
+| `np_api_key` | API Key de nullplatform |
+| `nrn` | NRN de nullplatform |
+| `tags_selectors` | Tags para seleccionar recursos |
+| `vpc` | Configuracion de VPC (azs, cidr, subnets) |
+| `github_installation_id` | ID de instalacion de GitHub App |
+| `github_organization` | Organizacion de GitHub |
+| `namespace` | Namespace de Kubernetes para tools |
+| `image_tag` | Tag de imagen del agente |
+| `cloud_provider` | Proveedor de nube |
+| `dns_type` | Tipo de DNS |
+| `use_account_slug` | Usar slug de cuenta |
+| `image_pull_secrets` | Secretos para pull de imagenes |
+| `service_template` | Path al template de servicio Istio |
+| `initial_ingress_path` | Path al template de ingress inicial |
+| `blue_green_ingress_path` | Path al template de ingress blue-green |
+| `k8s_provider` | Proveedor de Kubernetes |
+| `dns_provider_name` | Nombre del proveedor DNS |
+| `policy` | Politica de External DNS |
+| `resources` | Recursos para External DNS |
 
 ## Comandos Utiles
 
