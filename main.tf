@@ -105,7 +105,7 @@ module "nullplatform_cloud_provider" {
 ###############################################################################
 # Asset Repository
 ################################################################################
-module "nullplatform_asset_respository" {
+module "nullplatform_asset_repository" {
   source       = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.15.1"
   nrn          = var.nrn
   np_api_key   = var.np_api_key
