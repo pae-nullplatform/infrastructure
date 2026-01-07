@@ -226,19 +226,6 @@ module "cert_manager" {
     +---------------+
 ```
 
-## Pod de Prueba
-
-El archivo `pod-test.yaml` despliega un servidor Nginx de prueba con las siguientes rutas:
-
-```yaml
-# Rutas disponibles (configuradas en el ConfigMap nginx-hello-config):
-GET  /           -> Hello World (200)
-GET  /smoke/     -> Hello Smoke (200)
-POST /created    -> No Content (204)
-```
-
-> **Nota:** El hostname del pod de prueba se configura en el HTTPRoute (`nginx-hello-route`). Este dominio debe coincidir con la hosted zone configurada en Route53 para que External DNS cree el registro automaticamente.
-
 ## Variables de Configuracion
 
 | Variable | Descripcion |

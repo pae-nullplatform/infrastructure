@@ -140,7 +140,7 @@ module "nullplatform_prometheus" {
 }
 
 module "agent" {
-  source                  = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/agent?ref=feature/add-variables-to-istio"
+  source                  = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/agent?ref=v1.16.0"
   cluster_name            = var.cluster_name
   nrn                     = var.nrn
   tags_selectors          = var.tags_selectors
