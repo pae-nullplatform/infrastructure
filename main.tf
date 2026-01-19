@@ -125,10 +125,11 @@ module "nullplatform_dimension" {
 # Nullplatform Base
 ################################################################################
 module "nullplatform_base" {
-  source       = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/base?ref=v1.15.1"
-  nrn          = var.nrn
-  k8s_provider = var.k8s_provider
-  np_api_key   = var.np_api_key
+  source                   = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/base?ref=v1.15.1"
+  nrn                      = var.nrn
+  k8s_provider             = var.k8s_provider
+  np_api_key               = var.np_api_key
+  gateway_internal_enabled = true
 }
 
 
@@ -194,7 +195,7 @@ module "istio" {
 }
 
 module "external_dns_iam" {
-  source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/external_dns?ref=v1.15.1"
+  source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/external_dns?ref=fix/external-dns"
   aws_iam_openid_connect_provider_arn = module.eks.eks_oidc_provider_arn
   cluster_name                        = var.cluster_name
   hosted_zone_private_id              = module.dns.private_zone_id
@@ -202,15 +203,31 @@ module "external_dns_iam" {
 }
 
 module "external_dns" {
-  source                 = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/external_dns?ref=v1.15.1"
-  aws_region             = var.aws_region
-  dns_provider_name      = var.dns_provider_name
-  domain_filters         = var.domain_name
-  aws_iam_role_arn       = module.external_dns_iam.nullplatform_external_dns_role_arn
-  private_hosted_zone_id = module.dns.private_zone_id
-  public_hosted_zone_id  = module.dns.public_zone_id
-  policy                 = var.policy
-  sources                = var.resources
+  source            = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/external_dns?ref=fix/external-dns"
+  aws_region        = var.aws_region
+  dns_provider_name = var.dns_provider_name
+  domain_filters    = var.domain_name
+  aws_iam_role_arn  = module.external_dns_iam.nullplatform_external_dns_role_arn
+  zone_id_filter    = module.dns.public_zone_id
+  zone_type         = "public"
+  policy            = var.policy
+  sources           = var.resources
+  type              = "public"
+
+  depends_on = [module.alb_controller]
+}
+
+module "external_dns_private" {
+  source            = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/external_dns?ref=fix/external-dns"
+  aws_region        = var.aws_region
+  dns_provider_name = var.dns_provider_name
+  domain_filters    = var.domain_name
+  aws_iam_role_arn  = module.external_dns_iam.nullplatform_external_dns_role_arn
+  zone_id_filter    = module.dns.private_zone_id
+  zone_type         = "private"
+  policy            = var.policy
+  sources           = var.resources
+  type              = "private"
 
   depends_on = [module.alb_controller]
 }
