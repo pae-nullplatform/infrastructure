@@ -6,7 +6,7 @@ terraform {
     }
     nullplatform = {
       source  = "nullplatform/nullplatform"
-      version = "~> 0.0.63"
+      version = "~> 0.0.76"
     }
     aws = {
       source  = "hashicorp/aws"

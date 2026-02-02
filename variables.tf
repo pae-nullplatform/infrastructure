@@ -95,6 +95,15 @@ variable "k8s_provider" {
   type        = string
 }
 
+variable "endpoint_public_access" {
+  description = ""
+  type = bool
+}
+variable "endpoint_private_access" {
+  description = ""
+  type = bool
+}
+
 # ============================================================================
 # Agent Configuration
 # ============================================================================
