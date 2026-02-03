@@ -104,6 +104,11 @@ variable "endpoint_private_access" {
   type = bool
 }
 
+variable "endpoint_public_access_cidrs" {
+  description = ""
+  type        = list(string)
+}
+
 # ============================================================================
 # Agent Configuration
 # ============================================================================
