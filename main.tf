@@ -1,14 +1,4 @@
 ###############################################################################
-# VPC Config
-################################################################################
-module "vpc" {
-  source       = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/vpc?ref=v1.31.0"
-  account      = var.account
-  organization = var.organization
-  vpc          = var.vpc
-}
-
-###############################################################################
 # EKS Config
 ################################################################################
 module "eks" {
@@ -35,67 +25,6 @@ module "eks" {
       }
     }
   }
-}
-
-###############################################################################
-# EKS Auto Mode - Custom NodeClass & NodePool (for node tagging)
-################################################################################
-resource "kubernetes_manifest" "node_class" {
-  manifest = {
-    apiVersion = "eks.amazonaws.com/v1"
-    kind       = "NodeClass"
-    metadata = {
-      name = "tagged-nodes"
-    }
-    spec = {
-      tags = var.node_tags
-    }
-  }
-
-  depends_on = [module.eks]
-}
-
-resource "kubernetes_manifest" "node_pool" {
-  manifest = {
-    apiVersion = "karpenter.sh/v1"
-    kind       = "NodePool"
-    metadata = {
-      name = "general-purpose-tagged"
-    }
-    spec = {
-      template = {
-        spec = {
-          nodeClassRef = {
-            group = "eks.amazonaws.com"
-            kind  = "NodeClass"
-            name  = "tagged-nodes"
-          }
-          requirements = [
-            {
-              key      = "karpenter.sh/capacity-type"
-              operator = "In"
-              values   = ["on-demand"]
-            },
-            {
-              key      = "kubernetes.io/arch"
-              operator = "In"
-              values   = ["amd64"]
-            }
-          ]
-        }
-      }
-      limits = {
-        cpu    = "100"
-        memory = "400Gi"
-      }
-      disruption = {
-        consolidationPolicy = "WhenEmptyOrUnderutilized"
-        consolidateAfter    = "1m"
-      }
-    }
-  }
-
-  depends_on = [module.eks, kubernetes_manifest.node_class]
 }
 
 ###############################################################################
