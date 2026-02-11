@@ -8,53 +8,94 @@ module "vpc" {
   vpc          = var.vpc
 }
 
-# ########################################################
-# # IAM Rol para ver cluster
-# ########################################################
-# resource "aws_iam_role" "eks_admin" {
-#   name = "${var.cluster_name}-admin-role"
-#
-#   assume_role_policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action = "sts:AssumeRole"
-#         Effect = "Allow"
-#         Principal = {
-#           AWS = "arn:aws:iam::843443650160:role/aws-reserved/sso.amazonaws.com/sa-east-1/AWSReservedSSO_AWSAdministratorAccess_cf36aa73feaf2f63"
-#         }
-#       }
-#     ]
-#   })
-# }
-
 ###############################################################################
 # EKS Config
 ################################################################################
 module "eks" {
-  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=v1.31.0"
-  aws_subnets_private_ids = module.vpc.private_subnets
-  aws_vpc_vpc_id          = module.vpc.vpc_id
+  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=feat/eks-auto-mode-tags-support"
+  aws_subnets_private_ids = ["subnet-0c86be1073ba8eb46", "subnet-0b8d233011c7e1071"]
+  aws_vpc_vpc_id          = "vpc-0322282e89387d6ea"
   name                    = var.cluster_name
   use_auto_mode           = true
   endpoint_public_access = var.endpoint_public_access
   endpoint_private_access = var.endpoint_private_access
   endpoint_public_access_cidrs = var.endpoint_public_access_cidrs
   access_entries = {
-    # # Admin con política de cluster completo
-    # "admin" = {
-    #   principal_arn = aws_iam_role.eks_admin.arn
-    #   type          = "STANDARD"
-    #   policy_associations = {
-    #     admin = {
-    #       policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-    #       access_scope = {
-    #         type = "cluster"
-    #       }
-    #     }
-    #   }
-    # }
+    # Admin con política de cluster completo
+    "admin" = {
+      principal_arn = "arn:aws:iam::827992710245:role/aws-reserved/sso.amazonaws.com/sa-east-1/AWSReservedSSO_AWS_PAE_DEV-Developer-Standard_03ae3de6ca2dcc0a"
+      type          = "STANDARD"
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
   }
+}
+
+###############################################################################
+# EKS Auto Mode - Custom NodeClass & NodePool (for node tagging)
+################################################################################
+resource "kubernetes_manifest" "node_class" {
+  manifest = {
+    apiVersion = "eks.amazonaws.com/v1"
+    kind       = "NodeClass"
+    metadata = {
+      name = "tagged-nodes"
+    }
+    spec = {
+      tags = var.node_tags
+    }
+  }
+
+  depends_on = [module.eks]
+}
+
+resource "kubernetes_manifest" "node_pool" {
+  manifest = {
+    apiVersion = "karpenter.sh/v1"
+    kind       = "NodePool"
+    metadata = {
+      name = "general-purpose-tagged"
+    }
+    spec = {
+      template = {
+        spec = {
+          nodeClassRef = {
+            group = "eks.amazonaws.com"
+            kind  = "NodeClass"
+            name  = "tagged-nodes"
+          }
+          requirements = [
+            {
+              key      = "karpenter.sh/capacity-type"
+              operator = "In"
+              values   = ["on-demand"]
+            },
+            {
+              key      = "kubernetes.io/arch"
+              operator = "In"
+              values   = ["amd64"]
+            }
+          ]
+        }
+      }
+      limits = {
+        cpu    = "100"
+        memory = "400Gi"
+      }
+      disruption = {
+        consolidationPolicy = "WhenEmptyOrUnderutilized"
+        consolidateAfter    = "1m"
+      }
+    }
+  }
+
+  depends_on = [module.eks, kubernetes_manifest.node_class]
 }
 
 ###############################################################################

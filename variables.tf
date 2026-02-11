@@ -172,3 +172,13 @@ variable "resources" {
   description = "External DNS resources to watch"
   type        = list(string)
 }
+
+# ============================================================================
+# Node Tagging Configuration
+# ============================================================================
+
+variable "node_tags" {
+  description = "Tags to apply to EKS Auto Mode nodes via custom NodeClass"
+  type        = map(string)
+  default     = {}
+}
