@@ -16,6 +16,14 @@ terraform {
       source  = "hashicorp/helm"
       version = ">= 2.0.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = ">= 0.9.0"
+    }
+    github = {
+      source  = "integrations/github"
+      version = ">= 6.0"
+    }
   }
 }
 
@@ -42,6 +50,12 @@ provider "kubernetes" {
       ]
     )
   }
+}
+
+provider "github" {
+  # Authenticates with GITHUB_TOKEN env var if var.github_token is empty
+  token = var.github_token != "" ? var.github_token : null
+  owner = "pae-nullplatform"
 }
 
 provider "helm" {

@@ -1,0 +1,15 @@
+apiVersion: eks.amazonaws.com/v1
+kind: NodeClass
+metadata:
+  name: custom
+spec:
+  role: api-private-cluster-eks-auto-20260212152807870600000003
+  securityGroupSelectorTerms:
+    - id: sg-021001bfc67626331
+  subnetSelectorTerms:
+    - id: subnet-03ca8b4913b526f82
+    - id: subnet-03b8a46401a8c6c16
+  tags:
+    Environment: production
+    Project: PAE
+    Team: platform

@@ -97,11 +97,11 @@ variable "k8s_provider" {
 
 variable "endpoint_public_access" {
   description = ""
-  type = bool
+  type        = bool
 }
 variable "endpoint_private_access" {
   description = ""
-  type = bool
+  type        = bool
 }
 
 variable "endpoint_public_access_cidrs" {
@@ -182,3 +182,19 @@ variable "node_tags" {
   type        = map(string)
   default     = {}
 }
+
+
+variable "bucket_prefix" {}
+
+# ============================================================================
+# GitHub Token (used by service_definition module to read spec files)
+# Can also be set via GITHUB_TOKEN environment variable.
+# ============================================================================
+
+variable "github_token" {
+  description = "GitHub personal access token with read:org and repo scopes, used to fetch service spec files from pae-nullplatform/service"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
