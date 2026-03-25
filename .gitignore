@@ -506,6 +506,61 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+### Infrastructure & Security Sensitive Files ###
+
+# SSH private keys
+*.pem
+*.key
+id_rsa
+id_rsa*
+id_ed25519
+id_ed25519*
+id_dsa
+id_dsa*
+id_ecdsa
+id_ecdsa*
+
+# Certificates & keystores
+*.p12
+*.crt
+*.cer
+*.der
+
+# Environment & secrets files
+.env
+.env.*
+*.env
+secrets.yaml
+secrets.json
+*-secrets.yaml
+*-secrets.json
+*_secrets.yaml
+*_secrets.json
+
+# Kubernetes kubeconfig
+kubeconfig
+kubeconfig*
+*.kubeconfig
+kube.config
+
+# AWS credentials
+.aws/credentials
+.aws/config
+
+# Terraform plan output files
+*.tfplan
+tfplan
+*tfplan*
+
+# Generic credential/token files
+credentials
+credentials.json
+credentials.yaml
+credentials.yml
+*.token
+
+### End Infrastructure & Security ###
+
 # VS Code files for those working on multiple tools
 .vscode/*
 !.vscode/settings.json
