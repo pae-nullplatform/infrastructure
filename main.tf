@@ -2,7 +2,7 @@
 # EKS Config
 ################################################################################
 module "eks" {
-  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=v1.42.0"
+  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=fix/eks-auth-mode-validation-and-s3-secure-transport-policy"
   aws_subnets_private_ids = ["subnet-05070032ec080012a", "subnet-00c0bdda437e22490"]
   aws_vpc_vpc_id          = "vpc-0a5dfe8e463dee15d"
   name                    = var.cluster_name
@@ -13,6 +13,7 @@ module "eks" {
   endpoint_public_access_cidrs = var.endpoint_public_access_cidrs
   additional_network_cidrs     = ["100.17.0.0/16"]
   enabled_log_types            = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+  authentication_mode = "API"
   access_entries = {
     admin_sso = {
       principal_arn = "arn:aws:iam::235494813897:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_Administrator_cf6f7c1e79f4c2d3"
@@ -474,11 +475,16 @@ module "agent_api_key" {
 #
 #
 #
-# module "backend" {
-#   source        = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/backend?ref=v1.42.0"
-#   bucket_prefix = var.bucket_prefix
-#   aws_region    = var.aws_region
-# }
+module "backend" {
+  source        = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/backend?ref=v1.42.0"
+  bucket_prefix = var.bucket_prefix
+  aws_region    = var.aws_region
+}
 
 
 
+module "s3_policy" {
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/iam/s3?ref=fix/eks-auth-mode-validation-and-s3-secure-transport-policy"
+  bucket_id  = module.backend.bucket_name
+  bucket_arn = module.backend.bucket_arn
+}
