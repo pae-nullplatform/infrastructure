@@ -2,7 +2,7 @@
 # EKS Config
 ################################################################################
 module "eks" {
-  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=fix/eks-auth-mode-validation-and-s3-secure-transport-policy"
+  source                  = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/eks?ref=v1.48.2"
   aws_subnets_private_ids = ["subnet-05070032ec080012a", "subnet-00c0bdda437e22490"]
   aws_vpc_vpc_id          = "vpc-0a5dfe8e463dee15d"
   name                    = var.cluster_name
@@ -31,7 +31,7 @@ module "eks" {
 # DNS Config
 ################################################################################
 module "dns" {
-  source      = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/dns?ref=v1.42.0"
+  source      = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/dns?ref=v1.48.2"
   domain_name = var.domain_name
   vpc_id      = "vpc-0a5dfe8e463dee15d"
 }
@@ -40,7 +40,7 @@ module "dns" {
 # # ACM Config
 # ################################################################################
 # module "acm" {
-#   source      = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/acm?ref=v1.42.0"
+#   source      = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/acm?ref=v1.48.2"
 #   domain_name = var.domain_name
 #   zone_id     = module.dns.public_zone_id
 # }
@@ -126,7 +126,7 @@ module "dns" {
 # # Code Repository
 # ################################################################################
 # module "nullplatform_code_repository" {
-#   source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/code_repository?ref=v1.42.0"
+#   source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/code_repository?ref=v1.48.2"
 #   np_api_key             = var.np_api_key
 #   nrn                    = var.nrn
 #   git_provider           = "github"
@@ -138,7 +138,7 @@ module "dns" {
 # Cloud Providers Config
 ################################################################################
 module "nullplatform_cloud_provider" {
-  source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/cloud/aws/cloud?ref=v1.42.0"
+  source                 = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/cloud/aws/cloud?ref=v1.48.2"
   domain_name            = var.domain_name
   hosted_private_zone_id = module.dns.private_zone_id
   hosted_public_zone_id  = module.dns.public_zone_id
@@ -150,7 +150,7 @@ module "nullplatform_cloud_provider" {
 # # Asset Repository
 # ################################################################################
 # module "nullplatform_asset_repository" {
-#   source       = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.42.0"
+#   source       = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/asset/ecr?ref=v1.48.2"
 #   nrn          = var.nrn
 #   np_api_key   = var.np_api_key
 #   cluster_name = module.eks.eks_cluster_name
@@ -160,7 +160,7 @@ module "nullplatform_cloud_provider" {
 # Dimensions
 ################################################################################
 module "nullplatform_dimension" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/dimensions?ref=v1.42.0"
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/dimensions?ref=v1.48.2"
   np_api_key = var.np_api_key
   nrn        = var.nrn
 }
@@ -169,7 +169,7 @@ module "nullplatform_dimension" {
 # #Nullplatform Base
 # ###############################################################################
 # module "nullplatform_base" {
-#   source                                = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/base?ref=v1.42.0"
+#   source                                = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/base?ref=v1.48.2"
 #   nrn                                   = var.nrn
 #   k8s_provider                          = var.k8s_provider
 #   np_api_key                            = var.np_api_key
@@ -190,7 +190,7 @@ module "nullplatform_dimension" {
 #
 #
 # module "base_security" {
-#   source                     = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/security?ref=v1.42.0"
+#   source                     = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/security?ref=v1.48.2"
 #   cluster_name               = module.eks.eks_cluster_name
 #   gateway_internal_enabled   = true
 #   additional_network_cidrs   = ["100.17.0.0/16"]
@@ -204,13 +204,13 @@ module "nullplatform_dimension" {
 # # Prometheus Config
 # ################################################################################
 # module "nullplatform_prometheus" {
-#   source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/commons/prometheus?ref=v1.42.0"
+#   source = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/commons/prometheus?ref=v1.48.2"
 #
 #   depends_on = [module.eks]
 # }
 #
 module "agent" {
-  source                  = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/agent?ref=v1.42.0"
+  source                  = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/agent?ref=v1.48.2"
   cluster_name            = var.cluster_name
   nrn                     = var.nrn
   tags_selectors          = var.tags_selectors
@@ -234,7 +234,7 @@ module "agent" {
 }
 #
 # module "scope_definition" {
-#   source                   = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/scope_definition?ref=v1.42.0"
+#   source                   = "git::https://github.com/nullplatform/tofu-modules.git///nullplatform/scope_definition?ref=v1.48.2"
 #   nrn                      = var.nrn
 #   np_api_key               = var.np_api_key
 #   service_spec_name        = "AgentScope"
@@ -243,7 +243,7 @@ module "agent" {
 # }
 #
 # module "scope_definition_agent_association" {
-#   source                   = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/scope_definition_agent_association?ref=v1.42.0"
+#   source                   = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/scope_definition_agent_association?ref=v1.48.2"
 #   nrn                      = var.nrn
 #   tags_selectors           = var.tags_selectors
 #   api_key                  = module.scope_definition_agent_association_api_key.api_key
@@ -252,7 +252,7 @@ module "agent" {
 # }
 #
 # module "scope_definition_agent_association_api_key" {
-#   source             = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/api_key?ref=v1.42.0"
+#   source             = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/api_key?ref=v1.48.2"
 #   type               = "scope_notification"
 #   nrn                = var.nrn
 #   specification_slug = "k8s"
@@ -262,7 +262,7 @@ module "agent" {
 ################################################################################
 
 module "agent_iam" {
-  source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/agent?ref=v1.42.0"
+  source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/agent?ref=v1.48.2"
   aws_iam_openid_connect_provider_arn = module.eks.eks_oidc_provider_arn
   # additional_policies = {
   #   "nullplatform_rds-postgres_rds_policy" = "arn:aws:iam::235494813897:policy/nullplatform_rds-postgres_rds_policy",
@@ -274,20 +274,20 @@ module "agent_iam" {
 }
 
 module "agent_api_key" {
-  source = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/api_key?ref=v1.42.0"
+  source = "git::https://github.com/nullplatform/tofu-modules.git//nullplatform/api_key?ref=v1.48.2"
   type   = "agent"
   nrn    = var.nrn
 }
 #
 # module "istio" {
-#   source       = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/istio?ref=v1.42.0"
+#   source       = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/istio?ref=v1.48.2"
 #   service_type = "ClusterIP"
 #
 #   depends_on = [module.eks]
 # }
 #
 # module "external_dns_iam" {
-#   source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/external_dns?ref=v1.42.0"
+#   source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/external_dns?ref=v1.48.2"
 #   aws_iam_openid_connect_provider_arn = module.eks.eks_oidc_provider_arn
 #   cluster_name                        = var.cluster_name
 #   hosted_zone_private_id              = module.dns.private_zone_id
@@ -295,7 +295,7 @@ module "agent_api_key" {
 # }
 #
 # module "external_dns" {
-#   source            = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/external_dns?ref=v1.42.0"
+#   source            = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/external_dns?ref=v1.48.2"
 #   aws_region        = var.aws_region
 #   dns_provider_name = var.dns_provider_name
 #   domain_filters    = var.domain_name
@@ -312,7 +312,7 @@ module "agent_api_key" {
 # }
 #
 # module "external_dns_private" {
-#   source            = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/external_dns?ref=v1.42.0"
+#   source            = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/external_dns?ref=v1.48.2"
 #   aws_region        = var.aws_region
 #   dns_provider_name = var.dns_provider_name
 #   domain_filters    = var.domain_name
@@ -476,7 +476,7 @@ module "agent_api_key" {
 #
 #
 module "backend" {
-  source        = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/backend?ref=v1.42.0"
+  source        = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/backend?ref=v1.48.2"
   bucket_prefix = var.bucket_prefix
   aws_region    = var.aws_region
 }
@@ -484,7 +484,7 @@ module "backend" {
 
 
 module "s3_policy" {
-  source     = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/iam/s3?ref=fix/eks-auth-mode-validation-and-s3-secure-transport-policy"
+  source     = "git::https://github.com/nullplatform/tofu-modules.git//infrastructure/aws/iam/s3?ref=v1.48.2"
   bucket_id  = module.backend.bucket_name
   bucket_arn = module.backend.bucket_arn
 }
