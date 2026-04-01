@@ -8,10 +8,10 @@ module "eks" {
   name                    = var.cluster_name
   use_auto_mode           = true
   auto_mode_node_pools    = ["general-purpose", "system"]
-  endpoint_public_access       = var.endpoint_public_access
+  endpoint_public_access       = var.endpoint_public_access #en caso de que solucionen el prblema de los accesos publicos esta variable queda en false
   endpoint_private_access      = var.endpoint_private_access
   endpoint_public_access_cidrs = var.endpoint_public_access_cidrs
-  additional_network_cidrs     = ["100.17.0.0/16"]
+  additional_network_cidrs     = ["100.17.0.0/16"] # en casod e que quede en false endpoint_public_access esto tiene que quedar []
   enabled_log_types            = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
   authentication_mode = "API"
   access_entries = {
@@ -278,13 +278,13 @@ module "agent_api_key" {
   type   = "agent"
   nrn    = var.nrn
 }
-#
-# module "istio" {
-#   source       = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/istio?ref=v1.48.2"
-#   service_type = "ClusterIP"
-#
-#   depends_on = [module.eks]
-# }
+
+module "istio" {
+  source       = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/commons/istio?ref=v1.48.2"
+  service_type = "ClusterIP"
+
+  depends_on = [module.eks]
+}
 #
 # module "external_dns_iam" {
 #   source                              = "git::https://github.com/nullplatform/tofu-modules.git///infrastructure/aws/iam/external_dns?ref=v1.48.2"
